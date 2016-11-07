@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AddressValidateResponse>
+    <Address>
+        <Address2>455 N REXFORD DR # 3</Address2>
+        <City>BEVERLY HILLS</City>
+        <State>CA</State>
+        <Zip5>90210</Zip5>
+        <Zip4>4817</Zip4>
+        <ReturnText>Default address: The address you entered was found but more information is needed (such as an apartment, suite, or box number) to match to a specific address.</ReturnText>
+    </Address>
+</AddressValidateResponse>

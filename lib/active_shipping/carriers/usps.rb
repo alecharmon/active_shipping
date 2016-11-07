@@ -28,13 +28,15 @@ module ActiveShipping
       :us_rates => 'RateV4',
       :world_rates => 'IntlRateV2',
       :test => 'CarrierPickupAvailability',
-      :track => 'TrackV2'
+      :track => 'TrackV2',
+      :validate => 'Verify'
     }
     USE_SSL = {
       :us_rates => false,
       :world_rates => false,
       :test => true,
-      :track => false
+      :track => false,
+      :validate => false
     }
 
     CONTAINERS = {
@@ -226,6 +228,19 @@ module ActiveShipping
       end
     end
 
+    def get_valid_address(location, options = {})
+      raise ArgumentError, "USPS can only validate US Addresses " unless \
+        'US' == location.country_code
+      request = build_address_validation_request(location)
+      parse_address_validation_response(
+        commit(:validate, request, options[:test] || false)
+      )
+    end
+
+    def valid_address?(location, options = {})
+       !!get_valid_address(location, options = {})
+    end
+
     def valid_credentials?
       # Cannot test with find_rates because USPS doesn't allow that in test mode
       test_mode? ? canned_address_verification_works? : super
@@ -299,6 +314,37 @@ module ActiveShipping
         end
       end
       xml_builder.to_xml
+    end
+
+    def build_address_validation_request(location)
+      Nokogiri::XML::Builder.new do |xml|
+        xml.AddressValidateRequest('USERID' => @options[:login]) do
+          xml.Address do
+            xml.Address1{ xml.text(location.address1) }
+            xml.Address2{ xml.text(location.address2) }
+            xml.City{ xml.text(location.city) }
+            xml.State{ xml.text(location.state) }
+            xml.Zip5{ xml.text(location.postal_code) }
+            xml.Zip4{ xml.text('') }
+          end
+        end
+      end.to_xml
+    end
+
+    #return deafault address from USPS
+    def parse_address_validation_response(response)
+      xml = Nokogiri.XML(response)
+      return nil if xml.at_xpath("//Error")
+      address = xml.at_xpath('//Address')
+      return Location.new(
+        country: 'US',
+        state: address.at('State').text,
+        city: address.at('City').text,
+        address1: address.at('Address2').text,
+        zip: address.at('Zip5').text
+      ) if address
+
+
     end
 
     def us_rates(origin, destination, packages, options = {})

@@ -231,6 +231,33 @@ class USPSTest < ActiveSupport::TestCase
     assert_equal 'LARGE', USPS.size_code_for(Package.new(2, [1000, 1000, 1000], :units => :imperial))
   end
 
+  def test_get_valid_address_creates_correct_xml
+    expected_request = xml_fixture('usps/address_validation_request')
+    bh_address = location_fixtures[:beverly_hills_with_name]
+    @carrier.expects(:build_address_validation_request).with(bh_address).returns(expected_request)
+    @carrier.get_valid_address(bh_address)
+  end
+
+  def test_get_valid_address_only_accepts_us_addresses
+    assert_raises(ArgumentError) do
+      @carrier.get_valid_address(location_fixtures[:ottawa])
+    end
+  end
+
+  def test_parse_address_validation_response_in_nil_when_invalid
+    mock_invalid_response = xml_fixture('usps/address_validation_invalid_response')
+    location = location_fixtures[:beverly_hills_with_name]
+    @carrier.expects(:commit).returns(mock_invalid_response)
+    assert_nil @carrier.get_valid_address(location)
+  end
+
+  def test_get_valid_address_returns_location
+    mock_valid_response = xml_fixture('usps/address_validation_response')
+    location = location_fixtures[:beverly_hills_with_name]
+    @carrier.expects(:commit).returns(mock_valid_response)
+    assert @carrier.get_valid_address(location)
+  end
+
   # TODO: test_parse_domestic_rate_response
 
   def test_build_us_rate_request_uses_proper_container

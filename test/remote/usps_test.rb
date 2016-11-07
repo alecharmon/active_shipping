@@ -225,6 +225,10 @@ class RemoteUSPSTest < ActiveSupport::TestCase
     end
   end
 
+  def test_valid_address?
+    assert USPS.new(@usps_credentials.merge(:test => true)).valid_address?(location_fixtures[:beverly_hills_with_name])
+  end
+
   # Uncomment and switch out SPECIAL_COUNTRIES with some other batch to see which
   # countries are currently working. Commented out here just because it's a lot of
   # hits to their server at once:

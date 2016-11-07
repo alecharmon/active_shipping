@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AddressValidateRequest USERID="login">
+  <Address>
+    <Address1>455 N. Rexford Dr.</Address1>
+    <Address2>3rd Floor</Address2>
+    <City>Beverly Hills</City>
+    <State>CA</State>
+    <Zip5>90210</Zip5>
+    <Zip4></Zip4>
+  </Address>
+</AddressValidateRequest>
